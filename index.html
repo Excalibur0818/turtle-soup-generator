@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI海龟汤故事生成器</title>
+    <title>海龟汤生成器</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
@@ -17,8 +17,17 @@
         }
     </script>
     <style>
-        .gradient-bg {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        .business-bg {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        }
+        .card-shadow {
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+        .card-hover {
+            transition: all 0.3s ease;
+        }
+        .card-hover:hover {
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
         }
         .story-card {
             animation: fadeInUp 0.6s ease-out;
@@ -40,54 +49,82 @@
             0%, 50% { opacity: 1; }
             51%, 100% { opacity: 0.3; }
         }
+        .btn-business {
+            background: #000;
+            border: 2px solid #000;
+            color: #fff;
+            transition: all 0.3s ease;
+        }
+        .btn-business:hover {
+            background: #fff;
+            color: #000;
+        }
+        .input-business {
+            border: 2px solid #000;
+            background: #fff;
+            color: #000;
+        }
+        .input-business:focus {
+            border-color: #000;
+            box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.1);
+        }
     </style>
 </head>
-<body class="font-chinese bg-gray-50 min-h-screen">
-    <div class="gradient-bg min-h-screen py-8 px-4">
+<body class="font-chinese bg-white min-h-screen">
+    <div class="business-bg min-h-screen py-8 px-4">
         <div class="max-w-4xl mx-auto">
             <header class="text-center mb-8">
-                <h1 class="text-4xl md:text-5xl font-bold text-white mb-4">
-                    🐢 AI海龟汤故事生成器
+                <h1 class="text-4xl md:text-5xl font-bold text-black mb-4">
+                    海龟汤生成器
                 </h1>
-                <p class="text-xl text-gray-200">
-                    选择谜题类型，让MiniMax-M2为你创作一个精彩的逻辑推理海龟汤
+                <p class="text-xl text-gray-700">
+                    专业的逻辑推理谜题生成平台
                 </p>
             </header>
 
             <!-- API Key配置区域 -->
-            <div class="bg-white/10 backdrop-blur-md rounded-2xl p-6 mb-6">
-                <h2 class="text-lg font-semibold text-white mb-3">
-                    🔑 API配置
+            <div class="bg-white rounded-2xl shadow-2xl p-6 mb-6 card-shadow card-hover">
+                <h2 class="text-lg font-semibold text-black mb-4">
+                    API密钥配置
                 </h2>
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                        选择AI提供商
+                    </label>
+                    <select id="apiProvider" class="w-full px-4 py-3 border-2 border-gray-300 bg-white text-black rounded-lg focus:ring-2 focus:ring-black focus:border-black transition-all">
+                        <option value="minimax">MiniMax-M2</option>
+                        <option value="deepseek">DeepSeek</option>
+                    </select>
+                </div>
                 <div class="flex flex-col sm:flex-row gap-3">
                     <input 
                         type="password" 
                         id="apiKeyInput" 
                         placeholder="输入MiniMax API Key" 
-                        class="flex-1 px-4 py-3 border border-white/30 bg-white/20 text-white placeholder-white/70 rounded-lg focus:ring-2 focus:ring-white/50 focus:border-transparent transition-all"
+                        class="flex-1 px-4 py-3 border-2 border-gray-300 bg-white text-black placeholder-gray-500 rounded-lg focus:ring-2 focus:ring-black focus:border-black transition-all input-business"
                     >
                     <button 
                         id="saveApiKey" 
-                        class="px-6 py-3 bg-white/20 hover:bg-white/30 text-white font-medium rounded-lg transition-all border border-white/30"
+                        class="px-6 py-3 bg-black hover:bg-white text-white hover:text-black font-medium rounded-lg transition-all border-2 border-black btn-business"
                     >
                         保存
                     </button>
                 </div>
-                <p class="text-sm text-white/70 mt-2">
-                    <a href="https://platform.minimaxi.com" target="_blank" class="text-white underline hover:text-white/80">
-                        获取免费API Key
+                <p class="text-sm text-gray-600 mt-3">
+                    <a href="#" id="apiKeyLink" target="_blank" class="text-black underline hover:text-gray-700">
+                        获取免费API密钥
                     </a>
                 </p>
             </div>
 
             <!-- 主表单区域 -->
-            <div class="bg-white rounded-2xl shadow-2xl p-8 mb-6">
+            <div class="bg-white rounded-2xl shadow-2xl p-8 mb-6 card-shadow card-hover">
                 <div class="text-center mb-6">
-                    <h2 class="text-2xl font-bold text-gray-800 mb-2">
-                        🎯 选择你的海龟汤类型
+                    <h2 class="text-2xl font-bold text-black mb-2">
+                        海龟汤谜题生成配置
                     </h2>
                     <p class="text-gray-600">
-                        无需输入主题，直接选择谜题类型、背景时代和难度级别即可生成精彩的海龟汤谜题
+                        选择谜题类型、背景时代和难度级别，系统将为您生成专业的逻辑推理谜题
                     </p>
                 </div>
 
@@ -95,25 +132,25 @@
                     <div class="grid md:grid-cols-2 gap-6">
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-2">
-                                🐢 谜题类型
+                                谜题类型
                             </label>
-                            <select id="puzzleType" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all">
-                                <option value="death">💀 死亡之谜</option>
-                                <option value="identity">🎭 身份之谜</option>
-                                <option value="behavior">🤔 行为之谜</option>
-                                <option value="mystery">🔍 悬疑事件</option>
-                                <option value="logic">🧩 逻辑悖论</option>
+                            <select id="puzzleType" class="w-full px-4 py-3 border-2 border-gray-300 bg-white text-black rounded-lg focus:ring-2 focus:ring-black focus:border-black transition-all input-business">
+                                <option value="death">死亡之谜</option>
+                                <option value="identity">身份之谜</option>
+                                <option value="behavior">行为之谜</option>
+                                <option value="mystery">悬疑事件</option>
+                                <option value="logic">逻辑悖论</option>
                             </select>
                         </div>
                         
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-2">
-                                🎯 谜题复杂度
+                                谜题复杂度
                             </label>
-                            <select id="difficulty" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all">
-                                <option value="easy">🌱 简单 (新手友好)</option>
-                                <option value="medium">🔥 中等 (需要思考)</option>
-                                <option value="hard">💥 困难 (烧脑挑战)</option>
+                            <select id="difficulty" class="w-full px-4 py-3 border-2 border-gray-300 bg-white text-black rounded-lg focus:ring-2 focus:ring-black focus:border-black transition-all input-business">
+                                <option value="easy">简单 (新手友好)</option>
+                                <option value="medium">中等 (需要思考)</option>
+                                <option value="hard">困难 (烧脑挑战)</option>
                             </select>
                         </div>
                     </div>
@@ -121,11 +158,11 @@
                     <div class="grid md:grid-cols-2 gap-6">
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-2">
-                                🕰️ 背景时代
+                                背景时代
                             </label>
-                            <select id="era" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all">
-                                <option value="ancient">🏛️ 古代背景</option>
-                                <option value="modern">🏙️ 现代背景</option>
+                            <select id="era" class="w-full px-4 py-3 border-2 border-gray-300 bg-white text-black rounded-lg focus:ring-2 focus:ring-black focus:border-black transition-all input-business">
+                                <option value="ancient">古代背景</option>
+                                <option value="modern">现代背景</option>
                             </select>
                         </div>
                     </div>
@@ -133,47 +170,47 @@
                     <button 
                         type="submit" 
                         id="generateBtn"
-                        class="w-full py-4 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-bold text-lg rounded-lg transition-all transform hover:scale-[1.02] shadow-lg hover:shadow-xl"
+                        class="w-full py-4 bg-black hover:bg-white text-white hover:text-black font-bold text-lg rounded-lg transition-all transform hover:scale-[1.02] border-2 border-black btn-business"
                     >
-                        🐢 生成海龟汤谜题
+                        生成海龟汤谜题
                     </button>
                 </form>
             </div>
 
             <!-- 结果显示区域 -->
-            <div id="storyOutput" class="bg-white rounded-2xl shadow-2xl p-8 hidden">
+            <div id="storyOutput" class="bg-white rounded-2xl shadow-2xl p-8 hidden card-shadow card-hover">
                 <div class="text-center mb-6">
-                    <h3 class="text-2xl font-bold text-gray-800 mb-2">
-                        🎉 生成完成！
+                    <h3 class="text-2xl font-bold text-black mb-2">
+                        生成完成
                     </h3>
                 </div>
                 
                 <!-- 加载指示器 -->
                 <div id="loadingIndicator" class="text-center py-12 hidden">
-                    <div class="inline-flex items-center px-6 py-4 bg-blue-50 rounded-lg">
-                        <div class="typing-indicator w-3 h-3 bg-blue-600 rounded-full mr-3"></div>
-                        <span class="text-blue-700 font-medium">🤖 MiniMax-M2 正在创作海龟汤...</span>
+                    <div class="inline-flex items-center px-6 py-4 bg-gray-100 rounded-lg border border-gray-300">
+                        <div class="typing-indicator w-3 h-3 bg-black rounded-full mr-3"></div>
+                        <span class="text-black font-medium">AI 正在创作海龟汤...</span>
                     </div>
                 </div>
 
                 <!-- 故事内容 -->
                 <div id="storyContent" class="story-card hidden">
                     <div class="prose max-w-none">
-                        <div id="storyText" class="whitespace-pre-wrap text-gray-800 leading-relaxed text-base"></div>
+                        <div id="storyText" class="whitespace-pre-wrap text-black leading-relaxed text-base"></div>
                     </div>
                 </div>
             </div>
 
             <!-- 游戏规则说明 -->
-            <div class="bg-white/10 backdrop-blur-md rounded-2xl p-6 mt-6">
-                <h3 class="text-xl font-bold text-white mb-4">
-                    🎮 海龟汤游戏规则
+            <div class="bg-white rounded-2xl shadow-2xl p-6 mt-6 card-shadow card-hover">
+                <h3 class="text-xl font-bold text-black mb-4">
+                    海龟汤游戏规则
                 </h3>
-                <div class="text-white/90 space-y-2 text-sm">
-                    <p><strong>🎯 游戏目标：</strong>通过出题者提供的有限线索，推理出完整的故事真相</p>
-                    <p><strong>📋 游戏流程：</strong>出题者描述谜面 → 玩家提问 → 出题者回答"是"或"否" → 根据线索推理</p>
-                    <p><strong>🔍 推理技巧：</strong>从简单事实开始，逐步深入挖掘线索背后的逻辑</p>
-                    <p><strong>💡 游戏乐趣：</strong>通过有限信息推理出意想不到的真相</p>
+                <div class="text-gray-700 space-y-2 text-sm">
+                    <p><strong>游戏目标：</strong>通过出题者提供的有限线索，推理出完整的故事真相</p>
+                    <p><strong>游戏流程：</strong>出题者描述谜面 → 玩家提问 → 出题者回答"是"或"否" → 根据线索推理</p>
+                    <p><strong>推理技巧：</strong>从简单事实开始，逐步深入挖掘线索背后的逻辑</p>
+                    <p><strong>游戏乐趣：</strong>通过有限信息推理出意想不到的真相</p>
                 </div>
             </div>
         </div>

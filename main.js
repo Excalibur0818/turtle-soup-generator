@@ -1,8 +1,10 @@
 // API Key管理
 document.getElementById('saveApiKey').addEventListener('click', function() {
     const apiKey = document.getElementById('apiKeyInput').value.trim();
+    const provider = document.getElementById('apiProvider').value;
+    
     if (apiKey) {
-        localStorage.setItem('minimax_api_key', apiKey);
+        localStorage.setItem(`${provider}_api_key`, apiKey);
         this.innerHTML = '✅ 已保存';
         setTimeout(() => {
             this.innerHTML = '保存';
@@ -12,12 +14,34 @@ document.getElementById('saveApiKey').addEventListener('click', function() {
     }
 });
 
-// 页面加载时恢复API Key
-window.addEventListener('load', function() {
-    const savedApiKey = localStorage.getItem('minimax_api_key');
+// API提供商切换处理
+document.getElementById('apiProvider').addEventListener('change', function() {
+    const provider = this.value;
+    const apiKeyInput = document.getElementById('apiKeyInput');
+    const apiKeyLink = document.getElementById('apiKeyLink');
+    const placeholder = provider === 'minimax' ? '输入MiniMax API Key' : '输入DeepSeek API Key';
+    const linkUrl = provider === 'minimax' ? 'https://platform.minimaxi.com' : 'https://platform.deepseek.com';
+    
+    apiKeyInput.placeholder = placeholder;
+    apiKeyInput.value = ''; // 清空当前输入
+    apiKeyLink.href = linkUrl;
+    
+    // 加载已保存的API Key
+    const savedApiKey = localStorage.getItem(`${provider}_api_key`);
     if (savedApiKey) {
-        document.getElementById('apiKeyInput').value = savedApiKey;
+        apiKeyInput.value = savedApiKey;
     }
+});
+
+// 页面加载时恢复设置
+window.addEventListener('load', function() {
+    // 设置默认提供商
+    const defaultProvider = 'minimax';
+    document.getElementById('apiProvider').value = defaultProvider;
+    
+    // 更新界面
+    const event = new Event('change');
+    document.getElementById('apiProvider').dispatchEvent(event);
 });
 
 // 表单提交处理
@@ -33,10 +57,11 @@ document.getElementById('storyForm').addEventListener('submit', async function(e
 
 // 生成海龟汤的主函数
 async function generateTurtleSoupWithAI(puzzleType, era, difficulty) {
-    const apiKey = localStorage.getItem('minimax_api_key');
+    const provider = document.getElementById('apiProvider').value;
+    const apiKey = localStorage.getItem(`${provider}_api_key`);
     
     if (!apiKey) {
-        alert('请先配置MiniMax API Key');
+        alert(`请先配置${provider === 'minimax' ? 'MiniMax' : 'DeepSeek'} API Key`);
         return;
     }
     
@@ -46,8 +71,13 @@ async function generateTurtleSoupWithAI(puzzleType, era, difficulty) {
     const storyContent = document.getElementById('storyContent');
     const storyText = document.getElementById('storyText');
     
+    const providerNames = {
+        minimax: '🤖 MiniMax-M2',
+        deepseek: '🤖 DeepSeek'
+    };
+    
     generateBtn.disabled = true;
-    generateBtn.innerHTML = '🤖 MiniMax-M2 正在创作海龟汤...';
+    generateBtn.innerHTML = `${providerNames[provider]} 正在创作海龟汤...`;
     
     storyOutput.classList.remove('hidden');
     loadingIndicator.classList.remove('hidden');
@@ -55,7 +85,13 @@ async function generateTurtleSoupWithAI(puzzleType, era, difficulty) {
     
     try {
         const prompt = buildTurtleSoupPrompt(puzzleType, era, difficulty);
-        const turtleSoup = await callMiniMaxAPI(prompt, apiKey);
+        let turtleSoup;
+        
+        if (provider === 'minimax') {
+            turtleSoup = await callMiniMaxAPI(prompt, apiKey);
+        } else {
+            turtleSoup = await callDeepSeekAPI(prompt, apiKey);
+        }
         
         loadingIndicator.classList.add('hidden');
         storyText.textContent = turtleSoup;
@@ -147,6 +183,35 @@ async function callMiniMaxAPI(prompt, apiKey) {
 
     if (!response.ok) {
         throw new Error(`API调用失败: ${response.status}`);
+    }
+
+    const data = await response.json();
+    return data.choices[0].message.content;
+}
+
+// 调用DeepSeek API
+async function callDeepSeekAPI(prompt, apiKey) {
+    const response = await fetch('https://api.deepseek.com/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+            'Authorization': `Bearer ${apiKey}`,
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            model: 'deepseek-chat',
+            messages: [
+                {
+                    role: 'user',
+                    content: prompt
+                }
+            ],
+            temperature: 0.7,
+            max_tokens: 2000
+        })
+    });
+
+    if (!response.ok) {
+        throw new Error(`DeepSeek API调用失败: ${response.status}`);
     }
 
     const data = await response.json();
