@@ -19,8 +19,12 @@ document.getElementById('apiProvider').addEventListener('change', function() {
     const provider = this.value;
     const apiKeyInput = document.getElementById('apiKeyInput');
     const apiKeyLink = document.getElementById('apiKeyLink');
-    const placeholder = provider === 'minimax' ? '输入MiniMax API Key' : '输入DeepSeek API Key';
-    const linkUrl = provider === 'minimax' ? 'https://platform.minimaxi.com' : 'https://platform.deepseek.com';
+    const placeholder = provider === 'minimax' ? '输入MiniMax API Key' : 
+                       provider === 'deepseek' ? '输入DeepSeek API Key' : 
+                       '输入通义千问 API Key';
+    const linkUrl = provider === 'minimax' ? 'https://platform.minimaxi.com' : 
+                   provider === 'deepseek' ? 'https://platform.deepseek.com' : 
+                   'https://dashscope.console.aliyun.com';
     
     apiKeyInput.placeholder = placeholder;
     apiKeyInput.value = ''; // 清空当前输入
@@ -61,7 +65,12 @@ async function generateTurtleSoupWithAI(puzzleType, era, difficulty) {
     const apiKey = localStorage.getItem(`${provider}_api_key`);
     
     if (!apiKey) {
-        alert(`请先配置${provider === 'minimax' ? 'MiniMax' : 'DeepSeek'} API Key`);
+        const providerNames = {
+            minimax: 'MiniMax',
+            deepseek: 'DeepSeek',
+            tongyi: '通义千问'
+        };
+        alert(`请先配置${providerNames[provider]} API Key`);
         return;
     }
     
@@ -73,7 +82,8 @@ async function generateTurtleSoupWithAI(puzzleType, era, difficulty) {
     
     const providerNames = {
         minimax: '🤖 MiniMax-M2',
-        deepseek: '🤖 DeepSeek'
+        deepseek: '🤖 DeepSeek',
+        tongyi: '🤖 通义千问'
     };
     
     generateBtn.disabled = true;
@@ -89,8 +99,10 @@ async function generateTurtleSoupWithAI(puzzleType, era, difficulty) {
         
         if (provider === 'minimax') {
             turtleSoup = await callMiniMaxAPI(prompt, apiKey);
-        } else {
+        } else if (provider === 'deepseek') {
             turtleSoup = await callDeepSeekAPI(prompt, apiKey);
+        } else if (provider === 'tongyi') {
+            turtleSoup = await callTongyiAPI(prompt, apiKey);
         }
         
         loadingIndicator.classList.add('hidden');
@@ -218,6 +230,35 @@ async function callDeepSeekAPI(prompt, apiKey) {
     return data.choices[0].message.content;
 }
 
+// 调用通义千问API
+async function callTongyiAPI(prompt, apiKey) {
+    const response = await fetch('https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+            'Authorization': `Bearer ${apiKey}`,
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            model: 'qwen-plus',
+            messages: [
+                {
+                    role: 'user',
+                    content: prompt
+                }
+            ],
+            temperature: 0.7,
+            max_tokens: 2000
+        })
+    });
+
+    if (!response.ok) {
+        throw new Error(`通义千问API调用失败: ${response.status}`);
+    }
+
+    const data = await response.json();
+    return data.choices[0].message.content;
+}
+
 // 备用本地生成函数
 function createTurtleSoup(puzzleType, era, difficulty) {
     const templates = getTurtleSoupTemplates();
@@ -255,7 +296,7 @@ function getTurtleSoupTemplates() {
         'modern_mystery_medium': `## 🐢 海龟汤谜题
 
 ### 谜面（情境描述）
-程序员小李被发现死在家中电脑前，屏幕上显示着他正在编写的代码，警察发现门锁完好，窗户紧闭。
+程序员小李被发现死在家中的电脑前，屏幕上显示着他正在编写的代码，警察发现门锁完好，窗户紧闭。
 
 ### 关键线索
 1. 电脑屏幕上的代码最后几行是乱码
@@ -284,7 +325,7 @@ function getTurtleSoupTemplates() {
 从线索1和2可以推断，这不是双胞胎案件。线索3和4说明房间内只有一个人。
 
 ### 最终答案
-这是同一个人。死者在房间内换装，将新衣服穿在身上，旧的留在地上。钱包是道具，为了营造假象。最后用某种方法制造了自己的"死亡"，然后离开。`,
+这是同一个人。死者在房间内换装，将新衣服穿在身上，旧的留在地上的。钱包是道具，为了营造假象。最后用某种方法制造了自己的"死亡"，然后离开。`,
         
         'modern_behavior_easy': `## 🐢 海龟汤谜题
 
@@ -440,3 +481,6 @@ ${answer}
 
 🎮 玩法提示：这是动态生成的海龟汤谜题，你可以和朋友一起尝试推理，享受逻辑思维的乐趣！`;
 }
+
+
+
